@@ -1,16 +1,28 @@
+// 서버를 만들기 위한 작업
 const express = require('express');
-const cookieParser = require('cookie-parser');
 const app = express();
-const PORT = 3018;
+// cookieparser
+const cookieParser = require('cookie-parser');
 
-// Router
-const usersRouter = require('./routes/users.route');
-const postsRouter = require('./routes/posts.route');
+// router
+const router = require('./routes/index.js');
+
+// config
+const config = require('./config.js');
+
+// DB - mysql
+const mysql = require('./Database/db.js');
+const models = require('./Database/Models/index.js');
 
 app.use(express.json());
 app.use(cookieParser());
-app.use('/api', [usersRouter, postsRouter]);
+app.use('/', router);
 
-app.listen(PORT, () => {
-  console.log(PORT, '포트 번호로 서버가 실행되었습니다.');
-});
+// sequelize를 사용해 MySQL DB와 동기화 => 포트번호 확인
+async () => {
+  (await mysql.sync()).then(() => {
+    app.listen(config.port, () => {
+      console.log(`${config.port}번 포트가 열렸습니다!`);
+    });
+  });
+};
