@@ -10,7 +10,7 @@ const Post = mysql.define('post', {
     allowNull: false,
     primaryKey: true,
   },
-  UserId: {
+  userId: {
     type: Datatypes.INTEGER,
     allowNull: false,
   },

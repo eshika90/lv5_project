@@ -8,11 +8,11 @@ const Comment = mysql.define('comment', {
     allowNull: false,
     primaryKey: true,
   },
-  UserId: {
+  userId: {
     type: Datatypes.INTEGER,
     allowNull: false,
   },
-  PostId: {
+  postId: {
     type: Datatypes.INTEGER,
     allowNull: false,
   },

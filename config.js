@@ -7,8 +7,8 @@ const variable = {
   },
   jwt: {
     secretKey: 'lv4_report',
-    expireIn: '1d',
-    expireIn2: '120s',
+    expireIn: '120s',
+    expireIn2: '1d',
   },
   port: 3030,
 };

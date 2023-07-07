@@ -2,24 +2,27 @@ const jwt = require('jsonwebtoken');
 const User = require('../Database/Models/users');
 const config = require('../config.js');
 const { secretKey, expireIn, expireIn2 } = config.jwt;
+let tokenObject = {}; // Refresh Token을 저장할 Object
 
 module.exports = {
   create: async (req, res) => {
     const { nickname, password } = req.body;
-    const foundData = await User.findOne({ where: { nickname } });
-    if (!foundData) {
+    try {
+      const foundData = await User.findOne({ where: { nickname } });
+      if (foundData) {
+        return res
+          .status(400)
+          .json({ errorMessage: '이미 존재하는 닉네임입니다.' });
+      }
       const userCreate = await User.create({
         nickname,
         password,
-      }).then((d) => {
-        return d;
       });
-
-      return res.status(201).json(created.toJSON());
-    } else {
-      return res.status(401).json({
-        Success: false,
-        message: '이미 존재하는 닉네임입니다.',
+      return res.status(200).json({ data: userCreate });
+    } catch (e) {
+      console.error(e);
+      res.status(401).json({
+        errorMessage: '알 수 없는 오류입니다.',
       });
     }
   },
@@ -27,38 +30,56 @@ module.exports = {
     const { nickname, password } = req.body;
     try {
       const foundData = await User.findOne({ where: { nickname } });
-      if (password == foundData.password) {
-        // 비밀번호가 맞으면 token과 refreshtoken 발급
-        const token = jwt.sign(
-          {
-            userId: foundData.dataValues.id,
-          },
-          secretKey,
-          { expiresIn: expireIn2 } // 만료기간 120초
-        );
-        const refreshToken = jwt.sign({}, secretKey, { expiresIn: expireIn }); // 만료기간 1일
-        // 쿠키로 Token과 refreshtoken 보냄
-        res.cookie('Authorization', 'Bearer' + token);
-        res.cookie('refreshToken', refreshToken);
-        // 생성 됐으면 확인하기
-        res.status(201).json({
-          token: token,
-          refreshToken: refreshToken,
-          message: '로그인 되었습니다.',
+      if (!foundData || password !== foundData.password) {
+        return res.status(401).json({
+          errorMessage: '닉네임 혹은 비밀번호가 일치하지 않습니다.',
         });
-      } else {
-        res.status(400).json({
-          errorMessage: '닉네임과 비밀번호가 일치하지 않습니다.',
-        });
+      }
+      const id = req.params.id;
+      const accessToken = generateAccessToken(foundData.id);
+      const refreshToken = generateRefreshToken();
+      // 위에서 선언한 저장소에 refresh token을 가지고 해당 유저의 정보를 서버에 저장
+      tokenObject[refreshToken] = id;
+      // 쿠키로 accessT 전송
+      res.cookie('accessToken', accessToken);
+
+      // 쿠키로 refreshT 전송
+      res.cookie('refreshToken', refreshToken);
+      res.status(200).json({
+        token: accessToken,
+        refreshToken: refreshToken,
+        message: '로그인 되었습니다',
+      });
+      // accesstoken 생성 함수
+      function generateAccessToken(userId) {
+        return jwt.sign({ userId }, secretKey, { expiresIn: expireIn });
+      }
+      // refreshtoken 생성 함수
+      function generateRefreshToken() {
+        return jwt.sign({}, secretKey, { expiresIn: expireIn2 });
       }
     } catch (e) {
       console.error(e);
       return res.status(401).json({ errorMessage: '잘못된 접근 방식입니다.' });
     }
   },
-  getUser: (req, res) => {
-    const user = res.locals.foundUser;
+  logout: (req, res) => {
+    res.clearCookie('accessToken', 'refreshToken');
+    res.end();
+  },
+  getUser: async (req, res) => {
+    const userId = req.userId;
 
-    res.status(200).json(JSON.parse(JSON.stringify(user)));
+    try {
+      const user = await User.findOne({ where: { id: userId } });
+      if (user) {
+        res.status(201).json(user);
+      } else {
+        res.status(401).json({ errorMessage: '사용자를 찾을 수 없습니다.' });
+      }
+    } catch (e) {
+      console.error(e);
+      res.status(401).json({ errorMessage: '서버 오류입니다.' });
+    }
   },
 };
