@@ -51,8 +51,8 @@ module.exports = {
         message: '로그인 되었습니다',
       });
       // accesstoken 생성 함수
-      function generateAccessToken(userId) {
-        return jwt.sign({ userId }, secretKey, { expiresIn: expireIn });
+      function generateAccessToken(id) {
+        return jwt.sign({ id }, secretKey, { expiresIn: expireIn });
       }
       // refreshtoken 생성 함수
       function generateRefreshToken() {
@@ -68,10 +68,10 @@ module.exports = {
     res.end();
   },
   getUser: async (req, res) => {
-    const userId = req.userId;
+    const foundUser = req.user; // auth-middle 45번째줄
 
     try {
-      const user = await User.findOne({ where: { id: userId } });
+      const user = await User.findOne({ where: { id: foundUser.id } });
       if (user) {
         res.status(201).json(user);
       } else {

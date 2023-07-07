@@ -2,30 +2,30 @@ const jwt = require('jsonwebtoken');
 const User = require('../Database/Models/users.js');
 const config = require('../config.js');
 const { secretKey } = config.jwt;
+let tokenObject = {};
 
 async function isAuth(req, res, next) {
-  // 쿠키로 accesstoken과 refreshtoken받아오기
-  // express로 cookie를 읽어올때는 cookies로 받아와야 한다.
   const accessToken = req.cookies.accessToken;
   const refreshToken = req.cookies.refreshToken;
-  // acesstoken validation
+
   if (!accessToken) {
     return res
       .status(401)
       .json({ message: 'Access token이 존재하지 않습니다.' });
   }
-  // refreshtoken validation
+
   if (!refreshToken) {
     return res
       .status(401)
       .json({ message: 'Refresh token이 존재하지 않습니다.' });
   }
-  // 각 토큰의 유효성 검사
+
   const isAccessTokenValidate = validateAccessToken(accessToken);
   const isRefreshTokenValidate = validateRefreshToken(refreshToken);
 
   if (!isRefreshTokenValidate)
     return res.status(401).json({ message: 'Refresh Token이 만료되었습니다.' });
+
   if (!isAccessTokenValidate) {
     const accessTokenId = tokenObject[refreshToken];
     if (!accessTokenId)
@@ -33,20 +33,30 @@ async function isAuth(req, res, next) {
         errorMessage: 'Refresh token의 정보가 서버에 존재하지 않습니다.',
       });
     const newAccessToken = createAccessToken(accessTokenId);
-    res.cookie('AccessToken', newAccessToken);
+    res.cookie('accessToken', newAccessToken);
     return res
       .status(201)
       .json({ message: 'Access Token을 새롭게 발급하였습니다.' });
   }
+
   const payload = getAccessTokenPayload(accessToken);
-  if (!payload || !payload.userId) {
+  if (!payload || !payload.id) {
     return res.status(401).json({ errorMessage: '유효한 토큰이 아닙니다.' });
   }
-  req.userId = payload.userId; // userId 값을 req 객체에 설정
 
-  next(); // next() 함수 호출
+  try {
+    const user = await User.findOne({ where: { id: payload.id } });
+    if (user) {
+      req.user = user; // 사용자 전체 정보를 req 객체에 설정
+      next(); // next() 함수 호출
+    } else {
+      res.status(401).json({ errorMessage: '사용자를 찾을 수 없습니다.' });
+    }
+  } catch (e) {
+    console.error(e);
+    res.status(401).json({ errorMessage: '서버 오류입니다.' });
+  }
 
-  // access Token 검증 함수
   function validateAccessToken(accessToken) {
     try {
       jwt.verify(accessToken, secretKey);
@@ -56,6 +66,7 @@ async function isAuth(req, res, next) {
       return false;
     }
   }
+
   function validateRefreshToken(refreshToken) {
     try {
       jwt.verify(refreshToken, secretKey);
@@ -65,7 +76,7 @@ async function isAuth(req, res, next) {
       return false;
     }
   }
-  // access Token의 payload가져오는 함수
+
   function getAccessTokenPayload(accessToken) {
     try {
       const payload = jwt.verify(accessToken, secretKey);
@@ -74,6 +85,13 @@ async function isAuth(req, res, next) {
       console.error(e);
       return null;
     }
+  }
+
+  function createAccessToken(userId) {
+    const accessToken = jwt.sign({ id: userId }, secretKey, {
+      expiresIn: expiresIn,
+    });
+    return accessToken;
   }
 }
 
