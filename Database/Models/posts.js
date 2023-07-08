@@ -1,7 +1,5 @@
 const Datatypes = require('sequelize').DataTypes;
 const mysql = require('../db.js');
-const Comment = require('./comments.js');
-const User = require('./users.js');
 
 const Post = mysql.define('post', {
   id: {
@@ -14,6 +12,10 @@ const Post = mysql.define('post', {
     type: Datatypes.INTEGER,
     allowNull: false,
   },
+  nickname: {
+    type: Datatypes.STRING,
+    allowNull: false,
+  },
   title: {
     type: Datatypes.STRING,
     allowNull: false,
@@ -22,8 +24,11 @@ const Post = mysql.define('post', {
     type: Datatypes.TEXT,
     allowNull: false,
   },
+  likesCount: {
+    type: Datatypes.INTEGER,
+    allowNull: false,
+    defaultValue: 0,
+  },
 });
-
-Post.hasMany(Comment);
 
 module.exports = Post;

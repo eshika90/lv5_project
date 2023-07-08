@@ -1,27 +1,23 @@
-const Datatypes = require('sequelize').DataTypes;
+const Sq = require('sequelize');
+const DataTypes = Sq.DataTypes;
 const mysql = require('../db.js');
-const Post = require('./posts.js');
-const Comment = require('./comments.js');
 
 const User = mysql.define('user', {
   id: {
-    type: Datatypes.INTEGER,
+    type: DataTypes.INTEGER,
     autoIncrement: true,
     allowNull: false,
     primaryKey: true,
   },
   nickname: {
-    type: Datatypes.STRING,
+    type: DataTypes.STRING,
     unique: true,
     allowNull: false,
   },
   password: {
-    type: Datatypes.STRING,
+    type: DataTypes.STRING,
     allowNull: false,
   },
 });
-
-User.hasMany(Post);
-User.hasMany(Comment);
 
 module.exports = User;
