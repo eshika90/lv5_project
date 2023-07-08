@@ -1,27 +1,20 @@
-const Datatypes = require('sequelize').DataTypes;
 const mysql = require('../db.js');
+const DataTypes = require('sequelize').DataTypes;
 
 const Comment = mysql.define('comment', {
   id: {
-    type: Datatypes.INTEGER,
-    autoIncrement: true,
+    type: DataTypes.INTEGER,
     allowNull: false,
+    unique: true,
+    autoIncrement: true,
     primaryKey: true,
   },
-  userId: {
-    type: Datatypes.INTEGER,
-    allowNull: false,
-  },
-  postId: {
-    type: Datatypes.INTEGER,
-    allowNull: false,
-  },
   nickname: {
-    type: Datatypes.STRING,
+    type: DataTypes.STRING,
     allowNull: false,
   },
   comment: {
-    type: Datatypes.TEXT,
+    type: DataTypes.TEXT,
     allowNull: false,
   },
 });

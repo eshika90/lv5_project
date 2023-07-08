@@ -7,6 +7,9 @@ const cookieParser = require('cookie-parser');
 // router
 const router = require('./routes/index.js');
 
+// models (중요한 부분)
+const models = require('./Database/Models/index.js');
+
 // config
 const config = require('./config.js');
 

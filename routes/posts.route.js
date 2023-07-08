@@ -24,4 +24,7 @@ router.put(
 // 게시글 삭제
 router.delete('/:id', isAuth, postController.deletePost);
 
+// 좋아요 하기
+router.put('/:id/like', isAuth, postController.likePost);
+
 module.exports = router;

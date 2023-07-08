@@ -1,4 +1,5 @@
 const Post = require('../Database/Models/posts');
+const Like = require('../Database/Models/likes');
 
 module.exports = {
   createPost: async (req, res) => {
@@ -75,6 +76,35 @@ module.exports = {
     } catch (e) {
       console.error(e);
       res.status(400).json({ errorMessage: '게시글 삭제에 실패하였습니다.' });
+    }
+  },
+  likePost: async (req, res) => {
+    const { id } = req.params;
+    const foundUser = req.user;
+    try {
+      // 게시글 조회
+      const post = await Post.findByPk(id);
+      // 로그인한 유저가 좋아요 눌렀는지 확인
+      const isLiked = await Like.findOne({
+        where: { postId: id, userId: foundUser.id },
+      });
+
+      if (isLiked) {
+        await post.decrement('likeCount');
+        await Like.destroy({ where: { postId: id, userId: foundUser.id } });
+        return res
+          .status(200)
+          .json({ isSuccessful: true, message: '좋아요 취소' });
+      } else {
+        await post.increment('likeCount');
+        await Like.create({ postId: id, userId: foundUser.id });
+        return res
+          .status(200)
+          .json({ isSuccessful: true, message: '좋아요 추가' });
+      }
+    } catch (e) {
+      console.error(e);
+      res.status(400).json({ errorMessage: '게시글 좋아요에 실패하였습니다.' });
     }
   },
 };
