@@ -1,5 +1,4 @@
 const Post = require('../Database/Models/posts');
-const User = require('../Database/Models/users');
 
 module.exports = {
   createPost: async (req, res) => {
@@ -66,7 +65,7 @@ module.exports = {
     const foundUser = req.user;
     const foundPost = await Post.findOne({ where: { id } });
     try {
-      if (foundUser.id !== foundPost.id) {
+      if (foundUser.id !== foundPost.userId) {
         return res
           .status(401)
           .json({ errorMessage: '삭제할 권한이 없습니다.' });

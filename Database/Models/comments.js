@@ -16,6 +16,10 @@ const Comment = mysql.define('comment', {
     type: Datatypes.INTEGER,
     allowNull: false,
   },
+  nickname: {
+    type: Datatypes.STRING,
+    allowNull: false,
+  },
   comment: {
     type: Datatypes.TEXT,
     allowNull: false,

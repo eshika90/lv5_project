@@ -7,6 +7,7 @@ const defaultValidate = require('../Middlewares/validation');
 // 댓글 작성
 router.post(
   '/:postId',
+  isAuth,
   defaultValidate.createComment,
   commentController.createComment
 );
@@ -18,7 +19,7 @@ router.get('/:postId', commentController.getComments);
 router.put(
   '/:id',
   isAuth,
-  defaultValidate.updatePost,
+  defaultValidate.updateComment,
   commentController.updateComment
 );
 
