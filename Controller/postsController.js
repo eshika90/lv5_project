@@ -1,5 +1,7 @@
-const Post = require('../Database/Models/posts');
-const Like = require('../Database/Models/likes');
+const Post = require('../Database/Models/posts.js');
+const Like = require('../Database/Models/likes.js');
+const User = require('../Database/Models/users.js');
+const Op = require('sequelize').Op;
 
 module.exports = {
   createPost: async (req, res) => {
@@ -105,6 +107,29 @@ module.exports = {
     } catch (e) {
       console.error(e);
       res.status(400).json({ errorMessage: '게시글 좋아요에 실패하였습니다.' });
+    }
+  },
+  likeList: async (req, res) => {
+    try {
+      const userId = req.user.id;
+      const postIds = await Like.findAll({
+        where: { userId },
+        attributes: ['postId'], // postId만 선택
+      });
+
+      const postTitles = await Post.findAll({
+        where: {
+          id: {
+            [Op.in]: postIds.map((v) => v.postId), // postId 배열에서 postId 값만 추출
+          },
+        },
+        attributes: ['title', 'content'], // 제목과 postId만 선택
+      });
+
+      return res.status(203).json({ data: postTitles, isSuccessful: true });
+    } catch (e) {
+      console.error(e);
+      return { message: '조회에 실패하였습니다.', isSuccessful: false };
     }
   },
 };

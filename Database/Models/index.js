@@ -12,14 +12,16 @@ Comment.belongsTo(User);
 Post.hasMany(Comment);
 Comment.belongsTo(Post);
 
-User.belongsToMany(Post, { through: Like, foreignKey: 'userId' });
+User.belongsToMany(Post, {
+  through: Like,
+});
 Post.belongsToMany(User, {
   through: Like,
-  as: 'LikeUser',
   foreignKey: 'postId',
+  as: 'LikedUsers',
 });
 
-Like.hasMany(Post, { foreignKey: 'id' });
-Like.hasMany(User, { foreignKey: 'id' });
+Like.hasMany(Post, { foreignKey: 'postId' });
+Like.hasMany(User, { foreignKey: 'userId' });
 
 module.exports = [User, Post, Comment, Like];
