@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const User = require('../Database/Models/users.js');
 const config = require('../config.js');
+const cookieParser = require('cookie-parser');
 const { secretKey } = config.jwt;
 
 class isAuth {
@@ -23,7 +24,7 @@ class isAuth {
     return token;
   };
   // 만든 토큰들 검증하는 함수
-  verify = async (req, res, next) => {
+  async verify(req, res, next) {
     // 로그인 후 유저의 상태를 확인할 수 있도록
     // 구워진 쿠키를 요청받아온다.
     const accessToken = req.cookies.accessToken;
@@ -65,9 +66,9 @@ class isAuth {
         );
 
         if (payloadRefreshToken) {
-          const userId = payloadRefreshToken.userId;
+          const userId = tokenRepo[refreshToken].userId;
           const user = await User.findByPk(userId);
-          if (user && user.dataValues.token == refreshToken) {
+          if (user && userId == refreshToken) {
             const newAccessToken = await auth.getAccessToken(userId);
 
             res.cookie('accessToken', newAccessToken);
@@ -94,7 +95,7 @@ class isAuth {
         errorMessage: '로그인이 필요한 기능입니다.',
       });
     }
-  };
+  }
 }
 
 module.exports = isAuth;

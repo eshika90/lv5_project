@@ -21,6 +21,10 @@ const User = mysql.define('user', {
     type: DataTypes.STRING,
     allowNull: false,
   },
+  refreshToken: {
+    type: DataTypes.TEXT,
+    allowNull: true,
+  },
 });
 
 module.exports = User;

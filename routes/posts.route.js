@@ -6,9 +6,8 @@ const PostController = require('../Controller/postsController');
 const postController = new PostController();
 // middleware
 const isAuth = require('../middlewares/auth-middleware');
-const defaultValidate = require('../middlewares/validation');
+const defaultValidate = require('../Middlewares/validation');
 const isauth = new isAuth();
-console.log(isauth.verify);
 // 게시글 작성
 router.post('/', isauth.verify, postController.createPost);
 

@@ -2,7 +2,6 @@
 const express = require('express');
 const router = express.Router();
 // middleware
-const isAuth = require('../Middlewares/auth-middleware.js');
 const defaultValidate = require('../Middlewares/validation.js');
 // controller
 const UserController = require('../Controller/usersController.js');

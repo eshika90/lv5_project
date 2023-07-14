@@ -9,6 +9,9 @@ class UserRepository {
     const userData = await User.create(nickname, password);
     return userData;
   };
+  updateUserToken = async (id, refreshToken) => {
+    await User.update({ refreshToken }, { where: { id } });
+  };
 }
 
 module.exports = UserRepository;

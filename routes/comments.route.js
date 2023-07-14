@@ -8,11 +8,11 @@ const commentController = new CommentController();
 // middleware
 const isAuth = require('../middlewares/auth-middleware');
 const defaultValidate = require('../middlewares/validation');
-
+const isauth = new isAuth();
 // 게시글의 댓글 작성
 router.post(
   '/:postId',
-  isAuth.verify,
+  isauth.verify,
   defaultValidate.createComment,
   commentController.createComment
 );
@@ -21,14 +21,9 @@ router.post(
 router.get('/:postId', commentController.getComments);
 
 // 게시글의 댓글 수정
-router.put(
-  '/:id',
-  isAuth.verify,
-  defaultValidate.updateComment,
-  commentController.updateComment
-);
+router.put('/:id', commentController.updateComment);
 
 // 게시글의 댓글 삭제
-router.delete('/:id', isAuth.verify, commentController.deleteComment);
+router.delete('/:id', commentController.deleteComment);
 
 module.exports = router;

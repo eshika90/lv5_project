@@ -18,7 +18,7 @@ class PostsController {
   // 게시글 작성할 때 보내줘야하는 것: body, user정보
   createPost = async (req, res, next) => {
     const { title, content } = req.body;
-    const foundUser = req.user;
+    const foundUser = req.locals.payload;
     const createPostData = await this.postsService.createPost(
       title,
       content,

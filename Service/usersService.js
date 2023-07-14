@@ -23,6 +23,7 @@ class UsersService {
       // 사용자 확인이 됐다면 userId를 인증미들웨어의 메소드로 보냄
       const accessToken = await isAuth.getAccessToken(user.userId);
       const refreshToken = await isAuth.getRefreshToken(user.userId);
+
       if (!accessToken) {
         return res.status(400).json({ message: 'access토큰 없음' });
       }
