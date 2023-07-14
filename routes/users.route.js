@@ -1,16 +1,17 @@
+// 기본 라이브러리
 const express = require('express');
 const router = express.Router();
 // middleware
-const isAuth = require('../middlewares/auth-middleware.js');
-const validator = require('../Middlewares/validation.js');
-const userController = require('../Controller/usersController.js');
+const isAuth = require('../Middlewares/auth-middleware.js');
+const defaultValidate = require('../Middlewares/validation.js');
+// controller
+const UserController = require('../Controller/usersController.js');
+const userController = new UserController();
 
-router.post('/signup', validator.createUser, userController.create);
+router.post('/signup', defaultValidate.createUser, userController.createUser);
 
-router.post('/login', userController.login);
+router.post('/login', defaultValidate.login, userController.login);
 
-router.get('/logout', userController.logout);
-
-router.get('/getUser', isAuth, userController.getUser);
+// router.get('/getuser', isAuth.validateToken, userController.getUsers);
 
 module.exports = router;

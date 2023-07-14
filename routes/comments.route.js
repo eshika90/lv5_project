@@ -1,29 +1,34 @@
+// 기본 라이브러리
 const express = require('express');
 const router = express.Router();
-const commentController = require('../Controller/commentsController');
-const isAuth = require('../middlewares/auth-middleware');
-const defaultValidate = require('../Middlewares/validation');
+// Controller
+const CommentController = require('../Controller/commentsController');
+const commentController = new CommentController();
 
-// 댓글 작성
+// middleware
+const isAuth = require('../middlewares/auth-middleware');
+const defaultValidate = require('../middlewares/validation');
+
+// 게시글의 댓글 작성
 router.post(
   '/:postId',
-  isAuth,
+  isAuth.verify,
   defaultValidate.createComment,
   commentController.createComment
 );
 
-// 댓글 조회
+// 게시글의 댓글 조회
 router.get('/:postId', commentController.getComments);
 
-// 댓글 수정
+// 게시글의 댓글 수정
 router.put(
   '/:id',
-  isAuth,
+  isAuth.verify,
   defaultValidate.updateComment,
   commentController.updateComment
 );
 
-// 댓글 삭제
-router.delete('/:id', isAuth, commentController.deleteComment);
+// 게시글의 댓글 삭제
+router.delete('/:id', isAuth.verify, commentController.deleteComment);
 
 module.exports = router;

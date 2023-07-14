@@ -1,13 +1,13 @@
 const variable = {
   db: {
-    host: '',
-    username: '',
-    password: '',
-    database: '',
+    host: 'express-database.chsegd7gavec.ap-northeast-2.rds.amazonaws.com',
+    username: 'root',
+    password: 'sparta1234',
+    database: 'lv5_report',
   },
   jwt: {
-    secretKey: 'lv4_report',
-    expireIn: '120s',
+    secretKey: 'lv5_report',
+    expireIn: '600s',
     expireIn2: '1d',
   },
   port: 3030,

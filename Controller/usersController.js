@@ -1,85 +1,31 @@
-const jwt = require('jsonwebtoken');
-const User = require('../Database/Models/users');
-const config = require('../config.js');
-const { secretKey, expireIn, expireIn2 } = config.jwt;
-let tokenObject = {}; // Refresh Token을 저장할 Object
+const UsersService = require('../Service/usersService.js');
 
-module.exports = {
-  create: async (req, res) => {
+class UsersController {
+  constructor() {
+    this.usersService = new UsersService();
+  }
+  // 회원가입 시 받아야할 것: nickname, password, confirm
+  createUser = async (req, res, next) => {
+    const createUserData = await this.usersService.createUser(req.body);
+    res.status(200).json({ data: createUserData });
+    next();
+  };
+  // 로그인 시 받아야 할 것: nickname, password
+  login = async (req, res, next) => {
     const { nickname, password } = req.body;
-    try {
-      const foundData = await User.findOne({ where: { nickname } });
-      if (foundData) {
-        return res
-          .status(400)
-          .json({ errorMessage: '이미 존재하는 닉네임입니다.' });
-      }
-      const userCreate = await User.create({
-        nickname,
-        password,
-      });
-      return res.status(200).json({ data: userCreate });
-    } catch (e) {
-      console.error(e);
-      res.status(401).json({
-        errorMessage: '알 수 없는 오류입니다.',
-      });
-    }
-  },
-  login: async (req, res) => {
-    const { nickname, password } = req.body;
-    try {
-      const foundData = await User.findOne({ where: { nickname } });
-      if (!foundData || password !== foundData.password) {
-        return res.status(401).json({
-          errorMessage: '닉네임 혹은 비밀번호가 일치하지 않습니다.',
-        });
-      }
-      const id = req.params.id;
-      const accessToken = generateAccessToken(foundData.id);
-      const refreshToken = generateRefreshToken();
-      // 위에서 선언한 저장소에 refresh token을 가지고 해당 유저의 정보를 서버에 저장
-      tokenObject[refreshToken] = id;
-      // 쿠키로 accessT 전송
+    const userData = await this.usersService.login(nickname, password);
+    // service로부터 결과를 받아오면 쿠키를 받아온다
+    if (userData) {
       res.cookie('accessToken', accessToken);
-
-      // 쿠키로 refreshT 전송
       res.cookie('refreshToken', refreshToken);
-      res.status(200).json({
-        token: accessToken,
-        refreshToken: refreshToken,
-        message: '로그인 되었습니다',
+      res.status(201).json({
+        token: userData.accessToken,
+        refreshToken: userData.refreshToken,
+        message: '로그인 되었습니다.',
       });
-      // accesstoken 생성 함수
-      function generateAccessToken(id) {
-        return jwt.sign({ id }, secretKey, { expiresIn: expireIn });
-      }
-      // refreshtoken 생성 함수
-      function generateRefreshToken() {
-        return jwt.sign({}, secretKey, { expiresIn: expireIn2 });
-      }
-    } catch (e) {
-      console.error(e);
-      return res.status(401).json({ errorMessage: '잘못된 접근 방식입니다.' });
+    } else {
+      res.status(401).json({ errorMessage: '로그인에 실패하였습니다.' });
     }
-  },
-  logout: (req, res) => {
-    res.clearCookie('accessToken', 'refreshToken');
-    res.end();
-  },
-  getUser: async (req, res) => {
-    const foundUser = req.user; // auth-middle 45번째줄
-
-    try {
-      const user = await User.findOne({ where: { id: foundUser.id } });
-      if (user) {
-        res.status(201).json(user);
-      } else {
-        res.status(401).json({ errorMessage: '사용자를 찾을 수 없습니다.' });
-      }
-    } catch (e) {
-      console.error(e);
-      res.status(401).json({ errorMessage: '서버 오류입니다.' });
-    }
-  },
-};
+  };
+}
+module.exports = UsersController;

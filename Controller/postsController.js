@@ -1,135 +1,75 @@
-const Post = require('../Database/Models/posts.js');
-const Like = require('../Database/Models/likes.js');
-const User = require('../Database/Models/users.js');
-const Op = require('sequelize').Op;
+const PostsService = require('../Service/postsService');
 
-module.exports = {
-  createPost: async (req, res) => {
+class PostsController {
+  constructor() {
+    this.postsService = new PostsService();
+  }
+  // 모든 게시글 조회할 때 필요한 클라이언트 정보: 없음
+  getPosts = async (req, res, next) => {
+    const posts = await this.postsService.findAllPosts();
+    res.status(200).json({ data: posts });
+  };
+  // 게시글 상세조회 시 보내줘야하는 것: postId
+  getPost = async (req, res, next) => {
+    const { postId } = req.params;
+    const post = await this.postsService.findPost(postId);
+    res.status(200).json({ data: post });
+  };
+  // 게시글 작성할 때 보내줘야하는 것: body, user정보
+  createPost = async (req, res, next) => {
     const { title, content } = req.body;
     const foundUser = req.user;
-    try {
-      const post = await Post.create({
-        title,
-        content,
-        userId: foundUser.id, // 수정: userId 필드에 값을 할당
-        nickname: foundUser.nickname,
-      });
-      res.status(200).json({ message: '게시글 업로드 성공!', data: post });
-    } catch (e) {
-      console.error(e);
-      res.status(400).json({ errorMessage: '게시글 작성을 실패하였습니다.' });
-    }
-  },
-  getPosts: async (req, res, next) => {
-    const posts = await Post.findAll({
-      order: [['createdAt', 'DESC']],
-    });
-    return res.status(200).json({ data: posts });
-  },
-  getPost: async (req, res, next) => {
-    const { id } = req.params;
-    try {
-      const post = await Post.findOne({ where: { id } });
-      return res.status(200).json({ data: post });
-    } catch (e) {
-      console.error(e);
-      res
-        .status(400)
-        .json({ errorMessage: '게시글 상세조회에 실패하였습니다.' });
-    }
-  },
-  updatePost: async (req, res, next) => {
-    const { id } = req.params;
+    const createPostData = await this.postsService.createPost(
+      title,
+      content,
+      foundUser
+    );
+    res.status(200).json({ data: createPostData });
+  };
+  // 게시글 수정할 때: postId, body, user정보
+  updatePost = async (req, res, next) => {
+    const { postId } = req.params;
+    const foundUser = req.user;
+    // user정보 넣어야 함
     const { title, content } = req.body;
+    const updatePostData = await this.postsService.updatePost(
+      postId,
+      foundUser,
+      title,
+      content
+    );
+    res.status(200).json({ data: updatePostData });
+  };
+  // 삭제할 때: user정보, postId
+  deletePost = async (req, res, next) => {
+    const { postId } = req.params;
     const foundUser = req.user;
-    const foundPost = await Post.findOne({ where: { id } });
+    // user정보 넣어야 함
+    const deletionResult = await this.postsService.deletePost(
+      foundUser,
+      postId
+    );
+    res.status(200).json({ message: '게시글이 삭제되었습니다.' });
+  };
+  // client로부터 받아올 것: postId, userId
+  likePost = async (req, res, next) => {
     try {
-      if (foundUser.id !== foundPost.userId) {
-        return res
-          .status(401)
-          .json({ errorMessage: '수정할 권한이 없습니다.' });
-      }
-      await Post.update(
-        { title, content },
-        {
-          where: { id },
-        }
-      );
-      // 수정된 게시물을 다시 조회하여 반환
-      const updatedPost = await Post.findOne({ where: { id } });
-      res.status(200).json({ data: updatedPost });
-    } catch (e) {
-      console.error(e);
-      res.status(400).json({ errorMessage: '게시글 수정에 실패하였습니다.' });
+      const { postId } = req.params;
+      const foundUser = req.user;
+      await this.postsService.likePost(postId, foundUser);
+      res.status(200).json({ message: '좋아요 추가' });
+    } catch (error) {
+      console.error(error);
+      res.status(400).json({ errorMessage: '좋아요 추가 중 오류 발생' });
     }
-  },
-  deletePost: async (req, res, next) => {
-    const { id } = req.params;
-    const foundUser = req.user;
-    const foundPost = await Post.findOne({ where: { id } });
-    try {
-      if (foundUser.id !== foundPost.userId) {
-        return res
-          .status(401)
-          .json({ errorMessage: '삭제할 권한이 없습니다.' });
-      }
-      await Post.destroy({ where: { id } });
-      res.status(200).json({ message: '게시글을 삭제하였습니다.' });
-    } catch (e) {
-      console.error(e);
-      res.status(400).json({ errorMessage: '게시글 삭제에 실패하였습니다.' });
-    }
-  },
-  likePost: async (req, res) => {
-    const { id } = req.params;
-    const foundUser = req.user;
-    try {
-      // 게시글 조회
-      const post = await Post.findByPk(id);
-      // 로그인한 유저가 좋아요 눌렀는지 확인
-      const isLiked = await Like.findOne({
-        where: { postId: id, userId: foundUser.id },
-      });
+  };
 
-      if (isLiked) {
-        await post.decrement('likeCount');
-        await Like.destroy({ where: { postId: id, userId: foundUser.id } });
-        return res
-          .status(200)
-          .json({ isSuccessful: true, message: '좋아요 취소' });
-      } else {
-        await post.increment('likeCount');
-        await Like.create({ postId: id, userId: foundUser.id });
-        return res
-          .status(200)
-          .json({ isSuccessful: true, message: '좋아요 추가' });
-      }
-    } catch (e) {
-      console.error(e);
-      res.status(400).json({ errorMessage: '게시글 좋아요에 실패하였습니다.' });
-    }
-  },
-  likeList: async (req, res) => {
-    try {
-      const userId = req.user.id;
-      const postIds = await Like.findAll({
-        where: { userId },
-        attributes: ['postId'], // postId만 선택
-      });
+  // client로부터 받아올 것: userId
+  likeList = async (req, res, next) => {
+    const { userId } = req.user;
+    const userLikesData = await this.postsService.userLikes(userId);
+    res.status(200).json({ data: userLikesData });
+  };
+}
 
-      const postTitles = await Post.findAll({
-        where: {
-          id: {
-            [Op.in]: postIds.map((v) => v.postId), // postId 배열에서 postId 값만 추출
-          },
-        },
-        attributes: ['title', 'content'], // 제목과 postId만 선택
-      });
-
-      return res.status(203).json({ data: postTitles, isSuccessful: true });
-    } catch (e) {
-      console.error(e);
-      return { message: '조회에 실패하였습니다.', isSuccessful: false };
-    }
-  },
-};
+module.exports = PostsController;

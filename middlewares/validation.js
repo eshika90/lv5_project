@@ -31,6 +31,11 @@ const defaultValidate = {
       .withMessage('숫자와 문자를 포함한 4~8자리 비밀번호를 입력해주세요.'),
     validate,
   ],
+  login: [
+    body('nickname').trim().notEmpty().withMessage('닉네임을 입력해주세요.'),
+    body('password').trim().notEmpty().withMessage('패스워드를 입력해주세요'),
+    validate,
+  ],
   createPost: [
     body('title').trim().notEmpty().withMessage('내용을 입력해주세요'),
     body('content')
