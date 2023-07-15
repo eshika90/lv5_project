@@ -8,19 +8,26 @@ class PostsRepository {
     return posts;
   };
 
-  findPost = async (postId) => {
-    const post = await Post.findByPk(postId);
+  findPost = async (id) => {
+    const post = await Post.findByPk(id);
     return post;
   };
 
-  createPost = async (title, content, nickname) => {
-    const createPostData = await Post.create({ title, content, nickname });
+  createPost = async (title, content, userId) => {
+    const createPostData = await Post.create({
+      title,
+      content,
+      userId,
+    });
     return createPostData;
   };
-  updatePost = async (postId, userId, title, content) => {
-    const post = await Post.findByPk(postId);
+  updatePost = async (id, title, content, userId) => {
+    const post = await Post.findByPk(id);
     if (post.userId == userId) {
-      const updatedPost = await post.update(title, content);
+      const updatedPost = await post.update(
+        { title, content },
+        { where: { id } }
+      );
       return updatedPost;
     } else {
       return {
@@ -28,10 +35,10 @@ class PostsRepository {
       };
     }
   };
-  deletePost = async (postId, userId) => {
-    const post = Post.findByPk(postId);
+  deletePost = async (id, userId) => {
+    const post = Post.findByPk(id);
     if (post.userId == userId) {
-      await post.destroy();
+      await post.destroy({ where: { id } });
       return { isSuccessful: true };
     } else {
       return {
@@ -39,19 +46,19 @@ class PostsRepository {
       };
     }
   };
-  like = async (postId, userId) => {
+  like = async (id, userId) => {
     // Like테이블에서 postId 찾기
-    const postInLike = await Like.findByPk(postId);
+    const postInLike = await Like.findByPk(id);
     // Post테이블에서 postId 찾기
-    const post = await Post.findByPk(postId);
+    const post = await Post.findByPk(id);
     // 로그인한 유저와 Like테이블에서 찾은 userId가 같으면
     if (postInLike.userId == userId) {
       // LikeCount의 숫자를 감소시키고 Like테이블의 postId와 userId를 삭제
       await post.decrement('likeCount');
-      await postInLike.destroy({ postId: postId, userId: userId });
+      await postInLike.destroy({ postId: id, userId: userId });
     } else {
       await post.increment('likeCount');
-      await postInLike.create({ postId: postId, userId: userId });
+      await postInLike.create({ postId: id, userId: userId });
     }
   };
   findUserLikes = async (userId) => {

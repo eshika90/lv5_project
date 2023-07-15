@@ -23,8 +23,8 @@ class PostsService {
   };
 
   // 게시글 상세조회
-  findPost = async (postId) => {
-    const post = await this.postsRepository.findPost(postId);
+  findPost = async (id) => {
+    const post = await this.postsRepository.findPost(id);
 
     return post.map((p) => {
       return {
@@ -39,47 +39,36 @@ class PostsService {
     });
   };
   // 게시글 작성
-  createPost = async (title, content, nickname) => {
+  createPost = async (title, content, foundUser) => {
+    const userId = foundUser.id;
     const createPostData = await this.postsRepository.createPost(
       title,
       content,
-      nickname
+      userId
     );
-
-    return {
-      postId: createPostData.null, // null로 둔 이유?
-      nickname: createPostData.nickname,
-      title: createPostData.title,
-      content: createPostData.content,
-      createdAt: createPostData.createdAt,
-      updatedAt: createPostData.updatedAt,
-    };
+    return { data: createPostData };
   };
   // 게시글 수정
-  updatePost = async (postId, userId, title, content) => {
+  updatePost = async (id, foundUser, title, content) => {
+    const userId = foundUser.id;
     const updatedPostData = await this.postsRepository.updatePost(
-      postId,
-      userId,
+      id,
       title,
-      content
+      content,
+      userId
     );
 
-    return {
-      postId: updatedPostData.postId,
-      nickname: updatedPostData.nickname,
-      title: updatedPostData.title,
-      content: updatedPostData.content,
-      createdAt: updatedPostData.createdAt,
-      updatedAt: updatedPostData.updatedAt,
-    };
+    return { data: updatedPostData };
+    // 있어야하나??
   };
   // 게시글 삭제
-  deletePost = async (postId, userId) => {
-    return await this.postsRepository.deletePost(postId, userId);
+  deletePost = async (id, foundUser) => {
+    const userId = foundUser.id;
+    return await this.postsRepository.deletePost(id, userId);
   };
   // 게시글 좋아요
-  likePost = async (postId, userId) => {
-    return await this.postsRepository.like(postId, userId);
+  likePost = async (id, userId) => {
+    return await this.postsRepository.like(id, userId);
   };
   // 유저가 좋아요한 게시글 불러오기
   userLikes = async (userId) => {

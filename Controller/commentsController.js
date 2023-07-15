@@ -17,13 +17,14 @@ class CommentsController {
   // 댓글 작성시 필요한 클라이언트 정보: postId, user정보, comment
   createComment = async (req, res, next) => {
     const { postId } = req.params;
-    const foundUser = req.user;
+    const comment = req.body;
+    const foundUser = req.locals.payload;
     // client에서 받은 데이터만 service에 전달
     try {
       const createCommentData = await this.commentsService.createComment(
         postId,
         foundUser,
-        req.body
+        comment
       );
       res
         .status(200)
@@ -36,12 +37,13 @@ class CommentsController {
   // 수정 시 필요한 클라이언트 정보: commentId, userId, comment
   updateComment = async (req, res, next) => {
     const { postId } = req.params;
-    const foundUser = req.user;
+    const foundUser = req.locals.payload;
+    const comment = req.body;
     try {
       const updateCommentData = await this.commentsService.updateComment(
         postId,
         foundUser,
-        req.body
+        comment
       );
       res
         .status(200)

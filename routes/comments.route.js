@@ -6,24 +6,29 @@ const CommentController = require('../Controller/commentsController');
 const commentController = new CommentController();
 
 // middleware
-const isAuth = require('../middlewares/auth-middleware');
-const defaultValidate = require('../middlewares/validation');
+const isAuth = require('../Middlewares/auth-middleware');
+const defaultValidate = require('../Middlewares/validation');
 const isauth = new isAuth();
 // 게시글의 댓글 작성
 router.post(
-  '/:postId',
+  '/',
   isauth.verify,
   defaultValidate.createComment,
   commentController.createComment
 );
 
 // 게시글의 댓글 조회
-router.get('/:postId', commentController.getComments);
+router.get('/', commentController.getComments);
 
 // 게시글의 댓글 수정
-router.put('/:id', commentController.updateComment);
+router.put(
+  '/:id',
+  isauth.verify,
+  defaultValidate.updateComment,
+  commentController.updateComment
+);
 
 // 게시글의 댓글 삭제
-router.delete('/:id', commentController.deleteComment);
+router.delete('/:id', isauth.verify, commentController.deleteComment);
 
 module.exports = router;

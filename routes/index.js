@@ -13,7 +13,7 @@ const defaultRouter = [
     route: postsRouter,
   },
   {
-    path: '/comments',
+    path: '/posts/:postId/comments',
     route: commentsRouter,
   },
 ];

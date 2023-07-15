@@ -6,19 +6,19 @@ const { secretKey } = config.jwt;
 
 class isAuth {
   // AccessToken을 만드는 함수
-  getAccessToken = async (userId) => {
+  getAccessToken = async (id) => {
     const token =
       'Bearer ' +
-      jwt.sign({ userId }, secretKey, {
+      jwt.sign({ id }, secretKey, {
         expiresIn: config.jwt.expireIn,
       });
     return token;
   };
   // RefreshToken 을 만드는 함수
-  getRefreshToken = async (userId) => {
+  getRefreshToken = async (id) => {
     const token =
       'Bearer ' +
-      jwt.sign({ userId }, secretKey, {
+      jwt.sign({ id }, secretKey, {
         expiresIn: config.jwt.expireIn2,
       });
     return token;
@@ -33,8 +33,8 @@ class isAuth {
     // 빈칸을 기준으로 token값일 것
     if (accessToken) {
       let token = accessToken.split(' ')[1];
-      // 받아온 token값이 맞는지 jwt의 옵션으로 확인한다
-      // verift는 토큰과 시크릿키를 받아와서 확인.
+      // 받아온 token값이 맞는지 jwt.verify로 확인한다
+      // 이 함수는 토큰과 시크릿키를 받아와서 확인.
       // 만약 유효하지 않다면 undefined가 전달되고
       // 유효하다면 복호화된 객체를 갖게된다.
       let payloadAccessToken = jwt.verify(token, secretKey, (err, decoded) => {
@@ -52,11 +52,14 @@ class isAuth {
         next();
       } else {
         token = refreshToken.split(' ')[1];
-        //
+        // 마지막 매개변수, 콜백함수로 검증이 완료되면 호출됨
         let payloadRefreshToken = jwt.verify(
           token,
           secretKey,
           (err, decoded) => {
+            // err는 검증 중 발생한 오류 매개변수 => 검증이 성공하면 err는 null이됨
+            // decoded는 복호화된 토큰의 내용을 나타내는 객체
+            // 만약 검증이 실패하면 decoded는 undefined, 그렇지 않으면 복호화된 객체를 반환
             if (err) {
               return false;
             } else {
@@ -66,10 +69,10 @@ class isAuth {
         );
 
         if (payloadRefreshToken) {
-          const userId = tokenRepo[refreshToken].userId;
-          const user = await User.findByPk(userId);
-          if (user && userId == refreshToken) {
-            const newAccessToken = await auth.getAccessToken(userId);
+          const verifyUserId = payloadRefreshToken.userId;
+          const user = await User.findByPk(verifyUserId);
+          if (user && user.refreshToken == refreshToken) {
+            const newAccessToken = await auth.getAccessToken(verifyUserId);
 
             res.cookie('accessToken', newAccessToken);
             res.locals.payload = payloadRefreshToken;

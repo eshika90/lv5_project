@@ -1,19 +1,21 @@
-const isAuth = require('../middlewares/auth-middleware.js');
+const isAuth = require('../Middlewares/auth-middleware.js');
 const UsersRepository = require('../Repository/usersRepository');
 
 class UsersService {
   usersRepository = new UsersRepository();
-  createUser = async (data) => {
-    const { nickname, password } = data;
+  isauth = new isAuth();
+  createUser = async (nickname, password) => {
     const foundNick = await this.usersRepository.findNick(nickname);
-    if (foundNick) {
-      res.status(400).json({ errorMessage: '이미 존재하는 닉네임입니다.' });
+    if (!foundNick) {
+      const userData = await this.usersRepository.createUser(
+        nickname,
+        password
+      );
+      return userData;
+    } else {
+      return { result: false };
     }
     // 닉네임 확인 후 user 정보 저장
-    const userData = await this.usersRepository.createUser(nickname, password);
-    return res.status(201).json({
-      message: `닉네임${userData.nickname}으로 회원가입이 완료되었습니다.`,
-    });
   };
   login = async (nickname, password) => {
     // 유저 저장소에서 닉네임으로 user정보를 받아옴
@@ -21,8 +23,10 @@ class UsersService {
     // 인증( 유저정보 유무, 패스워드 확인 )
     if (user && user.password == password) {
       // 사용자 확인이 됐다면 userId를 인증미들웨어의 메소드로 보냄
-      const accessToken = await isAuth.getAccessToken(user.userId);
-      const refreshToken = await isAuth.getRefreshToken(user.userId);
+      const accessToken = await this.isauth.getAccessToken(user.dataValues.id);
+      const refreshToken = await this.isauth.getRefreshToken(
+        user.dataValues.id
+      );
 
       if (!accessToken) {
         return res.status(400).json({ message: 'access토큰 없음' });
@@ -30,6 +34,11 @@ class UsersService {
       if (!refreshToken) {
         return res.status(400).json({ message: 'refresh토큰 없음' });
       }
+      // refreshToken db에 저장하라고 repo에 요청
+      await this.usersRepository.updateUserToken(
+        user.dataValues.id,
+        refreshToken
+      );
       // 미들웨어로부터 받은 토큰을 반환
 
       return { accessToken, refreshToken, result: true };
@@ -44,7 +53,7 @@ class UsersService {
       if (user) {
         return user.map((u) => {
           return {
-            userId: u.userId,
+            id: u.id,
             nickname: u.nickname,
             createdAt: u.createdAt,
             updatedAt: u.updatedAt,

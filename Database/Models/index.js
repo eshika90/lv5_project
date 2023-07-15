@@ -21,7 +21,7 @@ Post.belongsToMany(User, {
   as: 'LikedUsers',
 });
 
-Like.hasMany(Post, { foreignKey: 'postId' });
-Like.hasMany(User, { foreignKey: 'userId' });
+Like.hasMany(Post, { foreignKey: 'id' });
+Like.hasMany(User, { foreignKey: 'id' });
 
 module.exports = [User, Post, Comment, Like];

@@ -9,10 +9,6 @@ const Comment = mysql.define('comment', {
     autoIncrement: true,
     primaryKey: true,
   },
-  nickname: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
   comment: {
     type: DataTypes.TEXT,
     allowNull: false,

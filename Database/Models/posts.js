@@ -10,10 +10,6 @@ const Post = mysql.define('post', {
     unique: true,
     primaryKey: true,
   },
-  nickname: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
   title: {
     type: DataTypes.STRING,
     allowNull: false,

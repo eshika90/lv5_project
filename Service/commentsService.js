@@ -16,31 +16,32 @@ class CommentsService {
     });
   };
   // 게시글의 댓글 작성
-  createComment = async (postId, foundUser, body) => {
-    const comment = body.comment;
-    const userId = foundUser.userId;
+  createComment = async (postId, foundUser, comment) => {
+    const { userId, nickname } = foundUser;
     const createCommentData = await this.commentsRepository.createComment(
       postId,
       userId,
+      nickname,
       comment
     );
     return createCommentData;
   };
   // 게시글의 댓글 수정
-  updateComment = async (commentId, foundUser, body) => {
+  updateComment = async (id, foundUser, body) => {
     const comment = body.comment;
-    const userId = foundUser.userId;
+    const { userId, nickname } = foundUser;
     const updateCommentData = await this.commentsRepository.updateComment(
-      commentId,
+      id,
+      nickname,
       userId,
       comment
     );
     return updateCommentData;
   };
 
-  deleteComment = async (commentId, foundUser) => {
+  deleteComment = async (id, foundUser) => {
     const userId = foundUser.userId;
-    return await this.commentsRepository.deleteComment(commentId, userId);
+    return await this.commentsRepository.deleteComment(id, userId);
   };
 }
 module.exports = CommentsService;

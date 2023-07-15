@@ -3,6 +3,8 @@ const express = require('express');
 const router = express.Router();
 // middleware
 const defaultValidate = require('../Middlewares/validation.js');
+const isAuth = require('../Middlewares/auth-middleware');
+const isauth = new isAuth();
 // controller
 const UserController = require('../Controller/usersController.js');
 const userController = new UserController();
