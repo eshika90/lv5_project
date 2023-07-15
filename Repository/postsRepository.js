@@ -1,6 +1,7 @@
 const Post = require('../Database/Models/posts');
 const User = require('../Database/Models/users');
 const Like = require('../Database/Models/likes');
+const Op = require('sequelize').Op;
 
 class PostsRepository {
   findAllPosts = async () => {
@@ -36,9 +37,10 @@ class PostsRepository {
     }
   };
   deletePost = async (id, userId) => {
-    const post = Post.findByPk(id);
+    const post = await Post.findByPk(id);
+    console.log('안녕', post);
     if (post.userId == userId) {
-      await post.destroy({ where: { id } });
+      await post.destroy();
       return { isSuccessful: true };
     } else {
       return {
@@ -47,25 +49,32 @@ class PostsRepository {
     }
   };
   like = async (id, userId) => {
-    // Like테이블에서 postId 찾기
-    const postInLike = await Like.findByPk(id);
-    // Post테이블에서 postId 찾기
-    const post = await Post.findByPk(id);
-    // 로그인한 유저와 Like테이블에서 찾은 userId가 같으면
-    if (postInLike.userId == userId) {
-      // LikeCount의 숫자를 감소시키고 Like테이블의 postId와 userId를 삭제
-      await post.decrement('likeCount');
-      await postInLike.destroy({ postId: id, userId: userId });
-    } else {
-      await post.increment('likeCount');
-      await postInLike.create({ postId: id, userId: userId });
+    try {
+      const post = await Post.findByPk(id);
+      const postInLike = await Like.findOne({ where: { postId: id, userId } });
+      if (postInLike) {
+        await post.decrement('likeCount');
+        await Like.destroy({ where: { postId: id, userId: userId } });
+      } else {
+        await post.increment('likeCount');
+        await Like.create({ postId: id, userId: userId });
+      }
+    } catch (error) {
+      return error;
     }
   };
   findUserLikes = async (userId) => {
     // Like테이블에서 userId 모두 찾기
-    const userLikes = await Like.findAll({ where: { userId } });
-    if (userLikes) {
-      return userLikes;
+    const likePostIds = await Like.findAll({
+      where: { userId },
+      attributes: ['postId'],
+    });
+    const likeList = await Post.findAll({
+      where: { id: { [Op.in]: likePostIds.map((v) => v.postId) } },
+      attributes: ['title'],
+    });
+    if (likePostIds) {
+      return likeList;
     } else {
       return { message: '해당 사용자의 좋아요한 게시글을 찾을 수 없습니다.' };
     }

@@ -31,8 +31,8 @@ router.put(
 router.delete('/:id', isauth.verify, postController.deletePost);
 
 // 게시글 좋아요
-router.put('/like/:id', isauth.verify, postController.likePost);
+router.put('/:id/like', isauth.verify, postController.likePost);
 // 특정 유저가 좋아요한 게시글 전체보기
-router.get('/likelist', isauth.verify, postController.likeList);
+router.get('/user/likelist', isauth.verify, postController.likeList);
 
 module.exports = router;

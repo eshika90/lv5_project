@@ -12,8 +12,8 @@ class PostsService {
     });
     return allPosts.map((p) => {
       return {
-        postId: p.postId,
-        nickname: p.nickname,
+        postId: p.id,
+        userId: p.userId,
         title: p.title,
         likeCount: p.likeCount,
         createdAt: p.createdAt,
@@ -26,17 +26,14 @@ class PostsService {
   findPost = async (id) => {
     const post = await this.postsRepository.findPost(id);
 
-    return post.map((p) => {
-      return {
-        postId: p.postId,
-        nickname: p.nickname,
-        title: p.title,
-        content: p.content,
-        likeCount: p.likeCount,
-        createdAt: p.createdAt,
-        updatedAt: p.updatedAt,
-      };
-    });
+    return {
+      postId: post.id,
+      title: post.title,
+      content: post.content,
+      likeCount: post.likeCount,
+      createdAt: post.createdAt,
+      updatedAt: post.updatedAt,
+    };
   };
   // 게시글 작성
   createPost = async (title, content, foundUser) => {
@@ -67,11 +64,13 @@ class PostsService {
     return await this.postsRepository.deletePost(id, userId);
   };
   // 게시글 좋아요
-  likePost = async (id, userId) => {
+  likePost = async (id, foundUser) => {
+    const userId = foundUser.id;
     return await this.postsRepository.like(id, userId);
   };
   // 유저가 좋아요한 게시글 불러오기
-  userLikes = async (userId) => {
+  userLikes = async (foundUser) => {
+    const userId = foundUser.id;
     return await this.postsRepository.findUserLikes(userId);
   };
 }

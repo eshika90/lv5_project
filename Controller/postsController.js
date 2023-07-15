@@ -52,9 +52,9 @@ class PostsController {
   likePost = async (req, res, next) => {
     try {
       const { id } = req.params;
-      const { userId } = res.locals.payload;
-      await this.postsService.likePost(id, userId);
-      res.status(200).json({ message: '좋아요 추가' });
+      const foundUser = res.locals.payload;
+      const likeResult = await this.postsService.likePost(id, foundUser);
+      res.status(200).json({ message: '좋아요 처리' });
     } catch (error) {
       console.error(error);
       res.status(400).json({ errorMessage: '좋아요 추가 중 오류 발생' });
@@ -63,8 +63,8 @@ class PostsController {
 
   // client로부터 받아올 것: userId
   likeList = async (req, res, next) => {
-    const { userId } = res.locals.payload;
-    const userLikesData = await this.postsService.userLikes(userId);
+    const foundUser = res.locals.payload;
+    const userLikesData = await this.postsService.userLikes(foundUser);
     res.status(200).json({ data: userLikesData });
   };
 }
