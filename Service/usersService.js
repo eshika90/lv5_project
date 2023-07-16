@@ -1,5 +1,7 @@
 const isAuth = require('../Middlewares/auth-middleware.js');
 const UsersRepository = require('../Repository/usersRepository');
+const bcrypt = require('bcrypt');
+const config = require('../config.js');
 
 class UsersService {
   usersRepository = new UsersRepository();
@@ -7,9 +9,10 @@ class UsersService {
   createUser = async (nickname, password) => {
     const foundNick = await this.usersRepository.findNick(nickname);
     if (!foundNick) {
+      const hashedPassword = bcrypt.hashSync(password, 10);
       const userData = await this.usersRepository.createUser(
         nickname,
-        password
+        hashedPassword
       );
       return userData;
     } else {
@@ -20,8 +23,12 @@ class UsersService {
   login = async (nickname, password) => {
     // 유저 저장소에서 닉네임으로 user정보를 받아옴
     const user = await this.usersRepository.findNick(nickname);
+    const passwordMatch = bcrypt.compareSync(
+      password,
+      user.dataValues.password
+    );
     // 인증( 유저정보 유무, 패스워드 확인 )
-    if (user && user.password == password) {
+    if (user && user.password == passwordMatch) {
       // 사용자 확인이 됐다면 userId를 인증미들웨어의 메소드로 보냄
       const accessToken = await this.isauth.getAccessToken(user.dataValues.id);
       const refreshToken = await this.isauth.getRefreshToken(
