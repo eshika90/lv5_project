@@ -14,9 +14,10 @@ class UsersService {
         nickname,
         hashedPassword
       );
+      console.log('여기보세요', userData);
       return userData;
-    } else {
-      return { result: false };
+    } else if (foundNick) {
+      return { message: '이미 존재하는 닉네임입니다.' };
     }
     // 닉네임 확인 후 user 정보 저장
   };

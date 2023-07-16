@@ -6,6 +6,7 @@ class UserRepository {
     return foundNick;
   };
   createUser = async (nickname, hashedPassword) => {
+    console.log(nickname);
     const userData = await User.create({ nickname, password: hashedPassword });
     return userData;
   };

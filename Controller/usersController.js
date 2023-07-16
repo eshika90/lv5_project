@@ -12,11 +12,9 @@ class UsersController {
         nickname,
         password
       );
-      res
-        .status(200)
-        .json({
-          message: '닉네임 ${createUserData.nickname}으로 회원가입 되었습니다.',
-        });
+      res.status(200).json({
+        message: `닉네임 ${createUserData.nickname}으로 회원가입 되었습니다.`,
+      });
     } catch (error) {
       console.error(error);
       res.status(401).json({ errorMessage: error.message });
